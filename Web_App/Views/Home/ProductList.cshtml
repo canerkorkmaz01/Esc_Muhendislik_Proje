@@ -1,0 +1,302 @@
+﻿@model IEnumerable<Product>
+
+<h2 class="text-center mt-3">Rastgele Ürünler</h2>
+
+<form asp-action="SaveToDatabase" method="post">
+    <div class="container mt-4">
+        <div class="row">
+
+            <div class="col-md-12">
+                <table class="table table-bordered table-hover table-striped text-center">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Product Code</th>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>UnitPrice</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTable">
+
+                        @if (Model != null)
+                        {
+
+                            foreach (var product in Model)
+                            {
+                               
+                                <tr>
+                                    <td>@product.ProductCode</td>
+                                    <td>@product.ProductName</td>
+                                    <td>@product.Quantity</td>
+                                    <td>@product.UnitPrice</td>
+                                    <td>
+                                        <input type="hidden" class="productId" value="@product.Id" />
+                                        <a @* data-id="@product.Id "  *@data-bs-toggle="modal" data-bs-target="#productModal" class="btn btn-info btn-sm editProductBtn">
+                                            <span class="fas fa-pencil-alt">Düzenle</span>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a class="btn btn-danger btn-sm d-flex" onclick="openDeleteModal(@product.Id)">
+                                            <i class="fas fa-trash">
+                                            </i>
+                                            Sil
+                                        </a>
+                                    </td>
+                                </tr>
+
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center">No products available</td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <a asp-action="FetchAndSaveProducts" class="btn btn-success">Verileri Al</a>
+
+    <a data-bs-toggle="modal" data-bs-target="#createModal" class="btn btn-success">Ürün Ekle</a>
+
+    <a asp-action="Login" asp-controller="Account" class="btn btn-success" style="float: right;">Çıkış Yap</a>
+</form>
+
+
+
+<!-- Ekle Modalı -->
+<div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteModalLabel">Ekle</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createProductForm">
+                    <input type="hidden" id="Id" />
+                    <div class="mb-3">
+                        <label for="ProductCode" class="form-label">Ürün Kodu</label>
+                        <input type="text" id="ProductCode" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="ProductName" class="form-label">Ürün Adı</label>
+                        <input type="text" id="ProductName" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="Quantity" class="form-label">Miktar</label>
+                        <input type="number" id="Quantity" class="form-control" required min="1" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="UnitPrice" class="form-label">Birim Fiyatı</label>
+                        <input type="number" id="UnitPrice" class="form-control" required step="0.01" min="0" />
+                    </div>
+                    <div id="resultMessage"></div>
+                    <div class="modal-footer">
+                        <button type="button" id="submitProductButton" class="btn btn-success">Ekle</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Kapat</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Sil Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteModalLabel">Silme Onayı</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Bu ürünü silmek istediğinize emin misiniz? productId
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                <button type="button" id="confirmDelete" class="btn btn-danger">Sil</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Güncelleme Modalı -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel">Ürün Güncelle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <div class="mb-3">
+                        <label for="productCode" class="form-label">Ürün Kodu</label>
+                        <input type="text" class="form-control" id="productCode" name="productCode">
+                    </div>
+                    <div class="mb-3">
+                        <label for="productName" class="form-label">Ürün Adı</label>
+                        <input type="text" class="form-control" id="productName" name="productName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Miktar</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity">
+                    </div>
+                    <div class="mb-3">
+                        <label for="unitPrice" class="form-label">Birim Fiyat</label>
+                        <input type="number" step="0.01" class="form-control" id="unitPrice" name="unitPrice">
+                    </div>
+                    <input type="hidden" id="productId" name="productId">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                <button type="button" class="btn btn-primary" id="updateProductBtn">Güncelle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts {
+    <script>
+                // <!--Sil-- >
+            let productId;
+
+        function openDeleteModal(id) {
+            productId = id;
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        document.getElementById('confirmDelete').addEventListener('click', async () => {
+            try {
+                const response = await fetch(`/Home/Delete/${productId}`, {
+                    method: 'GET'
+                });
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Silme işlemi başarısız oldu!' + " " + productId);
+                }
+            } catch (error) {
+                console.error('Silme işlemi sırasında bir hata oluştu:', error);
+            }
+        });
+
+        // <!--Ekle -->
+        document.getElementById("submitProductButton").addEventListener("click", function () {
+        
+            const productCode = document.getElementById("ProductCode").value;
+            const productName = document.getElementById("ProductName").value;
+            const quantity = document.getElementById("Quantity").value;
+            const unitPrice = document.getElementById("UnitPrice").value;
+
+           
+            const productData = {
+                ProductCode: productCode,
+                ProductName: productName,
+                Quantity: quantity,
+                UnitPrice: unitPrice
+            };
+
+            
+            fetch('/Home/Create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(productData),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ağ isteği başarısız oldu!');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Ürün başarıyla eklendi:', data);
+                    $('#createModal').modal('hide');
+                    location.reload();
+                })
+                .catch((error) => {
+                    console.error('Hata:', error);
+                    document.getElementById("resultMessage").innerText = "Bir hata oluştu: " + error.message;
+                });
+        });
+
+          // ----Güncelle-------------------------------------------------------------------------------------------------------
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            $('.editProductBtn').on('click', function () {
+                var row = $(this).closest('tr'); 
+                var productId = $(this).data('id'); 
+
+                productId = row.find('.productId').val(); 
+                var productCode = row.find('td:nth-child(1)').text();
+                var productName = row.find('td:nth-child(2)').text();
+                var quantity = row.find('td:nth-child(3)').text();
+                var unitPrice = row.find('td:nth-child(4)').text().replace(',', '.');;
+                console.log(unitPrice);
+
+                $('#productId').val(productId);
+                $('#productCode').val(productCode);
+                $('#productName').val(productName);
+                $('#quantity').val(quantity);
+                $('#unitPrice').val(unitPrice);
+                console.log('input degeri', $('#unitPrice').val(unitPrice));
+
+                $('#productModal').modal('show');
+            });
+
+            $('#updateProductBtn').on('click', function () {
+
+                var productData = {
+                    productId: $('#productId').val(),
+                    productCode: $('#productCode').val(),
+                    productName: $('#productName').val(),
+                    quantity: $('#quantity').val(),
+                    unitPrice: $('#unitPrice').val()
+                };
+                console.log(productData);
+               
+             
+                fetch('/Home/Edit/' + productData.productId, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(productData)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Güncelleme sırasında bir hata oluştu.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        alert('Ürün başarıyla güncellendi!');
+
+                        var modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+                        modal.hide();
+                        location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Hata:', error);
+                        alert('Güncelleme sırasında bir hata oluştu.');
+                    });
+            });
+        });
+
+    </script>
+}
+
